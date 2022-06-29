@@ -31,6 +31,7 @@ logging.basicConfig(
     filemode='w'
 )
 logger = logging.getLogger(__name__)
+detected_errors = []
 
 
 def send_message(bot, message):
@@ -40,6 +41,17 @@ def send_message(bot, message):
         logger.info('Сообщение успешно отправлено')
     except Exception:
         logging.error('Сбой при отправке сообщения в Telegram')
+
+
+def send_error(bot, message):
+    """Отправляет информацию об ошибках."""
+    logger.error(message)
+    if message not in detected_errors:
+        try:
+            send_message(bot, message)
+            detected_errors.append(message)
+        except Exception:
+            logger.info('Отправка сообщения не состоялась')
 
 
 def get_api_answer(current_timestamp):
@@ -109,6 +121,7 @@ def main():
             time.sleep(RETRY_TIME)
         except Exception:
             logging.critical('Сбой запуска программы')
+            send_error(bot, message)
             time.sleep(RETRY_TIME)
 
 
