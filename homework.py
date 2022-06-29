@@ -26,10 +26,9 @@ HOMEWORK_STATUSES = {
 logging.basicConfig(
     handlers=[logging.StreamHandler()],
     level=logging.INFO,
-    filename='main.log',
-    format='%(asctime)s, %(levelname)s, %(message)s',
-    filemode='w'
+    format='%(asctime)s, %(levelname)s, %(message)s'
 )
+
 logger = logging.getLogger(__name__)
 detected_errors = []
 
