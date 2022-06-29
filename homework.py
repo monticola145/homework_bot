@@ -26,7 +26,7 @@ HOMEWORK_STATUSES = {
 logging.basicConfig(
     handlers=[logging.StreamHandler()],
     level=logging.INFO,
-    filename='bot_logs.log',
+    filename='main.log',
     format='%(asctime)s, %(levelname)s, %(message)s',
     filemode='w'
 )
