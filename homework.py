@@ -115,12 +115,10 @@ def main():
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            response = response.get('data', ['homeworks'])
-            # -------------
+            response = response.get('current_date', current_timestamp)
             homework = check_response(response)
             if homework:
                 homework = response.get('homeworks')[0]
-                # -------------
                 message = parse_status(homework)
                 current_report[homework['homework_name']] = message
                 if current_report != prev_report:
