@@ -18,3 +18,8 @@ class EmptyAPIAnswer(NotForSending):
 class WrongResponseCode(IsForSending):
 
     pass
+
+
+class TelegramError(NotForSending):
+
+    pass
