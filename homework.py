@@ -147,5 +147,6 @@ if __name__ == '__main__':
         handlers=[logging.StreamHandler(sys.stdout),
                   logging.FileHandler('main.log', encoding='UTF-8')],
         level=logging.INFO,
-        format='%(asctime)s, %(levelname)s, %(funcName)s, %(message)s, %(lineno)s')
+        format='%(asctime)s, %(levelname)s,'
+               '%(funcName)s, %(message)s,%(lineno)s')
     main()
