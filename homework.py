@@ -73,7 +73,7 @@ def check_response(response):
     logging.info('Начало проверки ответа API...')
     if not isinstance(response, dict):
         raise TypeError('API != dict')
-    if ('homeworks' or 'current_date') not in response:
+    if 'homeworks' not in response or 'current_date' not in response:
         raise EmptyAPIAnswer('Такой домашки нет')
     homework = response.get('homeworks')
     if not isinstance(homework, list):
@@ -91,8 +91,8 @@ def parse_status(homework):
     homework_status = homework.get('status')
     if homework_status not in HOMEWORK_VERDICTS:
         raise ValueError('Неизвестный статус')
-    return (f'Изменился статус проверки работы "{homework_name}".'
-            f'{HOMEWORK_VERDICTS[homework_status]}')
+    return ('Изменился статус проверки работы "{0}". '
+            '{1}'.format(homework_name, HOMEWORK_VERDICTS[homework_status]))
 
 
 def check_tokens():
@@ -112,24 +112,22 @@ def main():
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            response = response.get('current_date', current_timestamp)
+            current_timestamp = response.get('current_date', current_timestamp)
             homework = check_response(response)
             if homework:
-                homeworks = response.get('homeworks')
-                homework = homeworks[0]
-                print(homework)
+                homework = homework[0]
                 current_report['name'] = homework['homework_name']
                 message = parse_status(homework)
                 current_report['message'] = message
             else:
-                current_report[homework[
-                    'homework_name']] = 'Нет новых статусов'
+                message = 'Нет новых статусов'
+                current_report['message'] = message
             if current_report != prev_report:
                 send_message(bot, message)
                 prev_report = current_report.copy()
             else:
                 logging.info('Новых статусов нет')
-        except (NotForSending) as error:
+        except NotForSending as error:
             logging.error(f'Ошибка не для пересылки: {error}')
 
         except Exception as error:
@@ -148,5 +146,5 @@ if __name__ == '__main__':
                   logging.FileHandler('main.log', encoding='UTF-8')],
         level=logging.INFO,
         format='%(asctime)s, %(levelname)s,'
-               '%(funcName)s, %(message)s,%(lineno)s')
+               '%(funcName)s, %(lineno)s, %(message)s')
     main()
