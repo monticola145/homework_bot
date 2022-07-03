@@ -60,7 +60,7 @@ def get_api_answer(current_timestamp):
         logging.info(f'Запрос к API: {REPORT.format(**response_parameters)}')
         if response.status_code != HTTPStatus.OK:
             raise WrongResponseCode(
-                f'Код:{response.status_code}/{response.text}'
+                f'Код:{response.status_code}/{response.text}/{response.reason}'
             )
         return response.json()
     except Exception as error:
@@ -73,7 +73,7 @@ def check_response(response):
     logging.info('Начало проверки ответа API...')
     if not isinstance(response, dict):
         raise TypeError('API != dict')
-    if ('homeworks') not in response:
+    if ('homeworks' or 'current_date') not in response:
         raise EmptyAPIAnswer('Такой домашки нет')
     homework = response.get('homeworks')
     if not isinstance(homework, list):
@@ -91,11 +91,8 @@ def parse_status(homework):
     homework_status = homework.get('status')
     if homework_status not in HOMEWORK_VERDICTS:
         raise ValueError('Неизвестный статус')
-    verdict = HOMEWORK_VERDICTS[homework_status]
-    return (f'Изменился статус проверки работы "{homework_name}". {verdict}'
-            .format(homework_name=homework.get(
-                    'homework_name'),
-                    verdict=HOMEWORK_VERDICTS[homework.get('status')]))
+    return (f'Изменился статус проверки работы "{homework_name}".'
+            f'{HOMEWORK_VERDICTS[homework_status]}')
 
 
 def check_tokens():
@@ -118,29 +115,26 @@ def main():
             response = response.get('current_date', current_timestamp)
             homework = check_response(response)
             if homework:
-                homework = response.get('homeworks')[0]
+                homeworks = response.get('homeworks')
+                homework = homeworks[0]
+                print(homework)
+                current_report['name'] = homework['homework_name']
                 message = parse_status(homework)
-                current_report[homework['homework_name']] = message
-                if current_report != prev_report:
-                    send_message(bot, message)
-                    prev_report = current_report.copy()
-                else:
-                    logging.info('Новых статусов нет')
+                current_report['message'] = message
             else:
                 current_report[homework[
                     'homework_name']] = 'Нет новых статусов'
             if current_report != prev_report:
                 send_message(bot, message)
                 prev_report = current_report.copy()
-            time.sleep(RETRY_TIME)
-        except (EmptyAPIAnswer,
-                NotForSending) as error:
+            else:
+                logging.info('Новых статусов нет')
+        except (NotForSending) as error:
             logging.error(f'Ошибка не для пересылки: {error}')
 
         except Exception as error:
-            logging.critical(f'Сбой запуска программы: {error}')
-            current_report[homework[
-                'homework_name']] = 'Сбой запуска программы'
+            logging.exception(f'Сбой запуска программы: {error}')
+            current_report['message'] = 'Сбой запуска программы'
             if current_report != prev_report:
                 send_message(bot, message)
                 prev_report = current_report.copy()
@@ -153,5 +147,5 @@ if __name__ == '__main__':
         handlers=[logging.StreamHandler(sys.stdout),
                   logging.FileHandler('main.log', encoding='UTF-8')],
         level=logging.INFO,
-        format='%(asctime)s, %(levelname)s, %(funcName)s, %(message)s')
+        format='%(asctime)s, %(levelname)s, %(funcName)s, %(message)s, %(lineno)s')
     main()
