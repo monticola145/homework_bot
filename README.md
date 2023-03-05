@@ -69,4 +69,5 @@ python manage.py runserver
 
 [Monticola]
 Git - https://github.com/monticola
+
 Email - ``jandiev2001@yandex.ru``
